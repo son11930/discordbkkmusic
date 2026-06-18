@@ -25,24 +25,32 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   try {
     let songInfo;
+    let titleToSearch = query;
+
     if (query.startsWith('http')) {
       try {
         const urlObj = new URL(query);
         const validHostnames = ['youtube.com', 'www.youtube.com', 'youtu.be', 'music.youtube.com'];
         if (!validHostnames.includes(urlObj.hostname)) {
-          return interaction.editReply('❌ Only YouTube and YouTube Music URLs are supported.');
+          return interaction.editReply('❌ Only YouTube URLs are supported right now.');
         }
+        const info = await play.video_info(query);
+        titleToSearch = info.video_details.title || 'Unknown';
       } catch {
-        return interaction.editReply('❌ Invalid URL provided.');
+        return interaction.editReply('❌ Invalid URL provided or YouTube blocked fetching info.');
       }
-      const info = await play.video_info(query);
-      songInfo = { title: info.video_details.title || 'Unknown', url: info.video_details.url };
-    } else {
-      const searchResults = await play.search(query, { limit: 1 });
+    }
+
+    // Search on SoundCloud with the query (or the extracted YouTube title)
+    try {
+      const searchResults = await play.search(titleToSearch, { limit: 1, source: { soundcloud: 'tracks' } });
       if (searchResults.length === 0) {
-        return interaction.editReply('❌ No results found.');
+        return interaction.editReply('❌ No results found on SoundCloud.');
       }
-      songInfo = { title: searchResults[0].title || 'Unknown', url: searchResults[0].url };
+      songInfo = { title: searchResults[0].name || searchResults[0].title || 'Unknown', url: searchResults[0].url };
+    } catch (e) {
+      console.error('SoundCloud search error:', e);
+      return interaction.editReply('❌ Error searching on SoundCloud.');
     }
 
     const result = await player.addAndPlay(songInfo);
