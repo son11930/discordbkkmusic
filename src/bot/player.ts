@@ -1,0 +1,108 @@
+import {
+  AudioPlayer,
+  createAudioPlayer,
+  createAudioResource,
+  joinVoiceChannel,
+  VoiceConnection,
+  AudioPlayerStatus,
+  VoiceConnectionStatus,
+  InternalDiscordGatewayAdapterCreator,
+} from '@discordjs/voice';
+import play from 'play-dl';
+import { MusicQueue, Song } from '../music/queue';
+
+export class MusicPlayer {
+  private player: AudioPlayer;
+  private connection: VoiceConnection | null = null;
+  private currentQueue: MusicQueue;
+
+  constructor() {
+    this.player = createAudioPlayer();
+    this.currentQueue = new MusicQueue();
+
+    // Event listener for when a song finishes
+    this.player.on(AudioPlayerStatus.Idle, () => {
+      this.playNext();
+    });
+  }
+
+  public get queue(): MusicQueue {
+    return this.currentQueue;
+  }
+
+  public join(
+    channelId: string,
+    guildId: string,
+    adapterCreator: InternalDiscordGatewayAdapterCreator
+  ): void {
+    if (this.connection) {
+      return; // Already connected
+    }
+    
+    this.connection = joinVoiceChannel({
+      channelId,
+      guildId,
+      adapterCreator,
+    });
+
+    this.connection.subscribe(this.player);
+
+    this.connection.on(VoiceConnectionStatus.Disconnected, () => {
+      this.stop();
+    });
+  }
+
+  public async addAndPlay(song: Song): Promise<boolean> {
+    this.currentQueue = this.currentQueue.add(song);
+    
+    // If not playing anything, start playing
+    if (this.player.state.status !== AudioPlayerStatus.Playing) {
+      return this.playNext();
+    }
+    return false;
+  }
+
+  public async playNext(): Promise<boolean> {
+    this.currentQueue = this.currentQueue.next();
+    const nextSong = this.currentQueue.current;
+
+    if (!nextSong) {
+      this.player.stop();
+      return false;
+    }
+
+    try {
+      const stream = await play.stream(nextSong.url);
+      const resource = createAudioResource(stream.stream, {
+        inputType: stream.type,
+      });
+      this.player.play(resource);
+      return true;
+    } catch (error) {
+      console.error(`Error playing song ${nextSong.url}:`, error);
+      // Skip to the next one if it fails
+      return this.playNext();
+    }
+  }
+
+  public pause(): void {
+    this.player.pause();
+  }
+
+  public resume(): void {
+    this.player.unpause();
+  }
+
+  public skip(): void {
+    this.player.stop(); // This triggers the Idle event, which calls playNext()
+  }
+
+  public stop(): void {
+    this.currentQueue = this.currentQueue.clear();
+    this.player.stop();
+    if (this.connection) {
+      this.connection.destroy();
+      this.connection = null;
+    }
+  }
+}
