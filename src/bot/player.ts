@@ -109,9 +109,6 @@ export class MusicPlayer {
         quiet: true,
         format: 'bestaudio[ext=webm][acodec=opus]/bestaudio/best',
         limitRate: '1M',
-        reconnect: 1,
-        reconnectStreamed: 1,
-        reconnectDelayMax: 5,
       }, { stdio: ['ignore', 'pipe', 'ignore'] });
 
       if (!this.currentProcess.stdout) throw new Error("No stdout from yt-dlp");
