@@ -36,7 +36,7 @@ goto menu
 cls
 echo [INFO] Connecting to %USER%@%IP% to update...
 echo ---------------------------------------------------
-ssh -t %USER%@%IP% "cd %DIR% && echo '[-] Pulling latest code...' && git pull origin main && echo '[-] Deploying slash commands...' && npm run deploy && echo '[-] Restarting bot...' && pm2 restart ecosystem.config.js && echo '' && echo '[OK] Bot Updated & Restarted Successfully!'"
+ssh -t %USER%@%IP% "cd %DIR% && echo '[-] Pulling latest code...' && git pull origin main && echo '[-] Installing dependencies...' && npm install && echo '[-] Deploying slash commands...' && npm run deploy && echo '[-] Restarting bot...' && pm2 restart ecosystem.config.js && echo '' && echo '[OK] Bot Updated & Restarted Successfully!'"
 echo ---------------------------------------------------
 pause
 goto menu
