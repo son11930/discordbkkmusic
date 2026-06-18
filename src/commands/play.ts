@@ -37,6 +37,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         noWarnings: true,
         noCheckCertificates: true,
         preferFreeFormats: true,
+        skipDownload: true,
+        flatPlaylist: true,
+        youtubeSkipDashManifest: true
       });
 
       // If it's a search, info.entries will exist

@@ -10,6 +10,7 @@ import {
   StreamType,
 } from '@discordjs/voice';
 import youtubedl, { exec } from 'youtube-dl-exec';
+import { ChildProcess } from 'child_process';
 import { MusicQueue, Song } from '../music/queue';
 
 export class MusicPlayer {
@@ -20,6 +21,7 @@ export class MusicPlayer {
   private onStopCallback?: () => void;
   private leaveTimeout: NodeJS.Timeout | null = null;
   private readonly LEAVE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+  private currentProcess: ChildProcess | null = null;
 
   constructor(onStop?: () => void) {
     this.player = createAudioPlayer();
@@ -87,6 +89,11 @@ export class MusicPlayer {
   }
 
   public async playNext(): Promise<boolean> {
+    if (this.currentProcess) {
+      this.currentProcess.kill();
+      this.currentProcess = null;
+    }
+
     this.currentQueue = this.currentQueue.next();
     const nextSong = this.currentQueue.current;
 
@@ -97,17 +104,20 @@ export class MusicPlayer {
     }
 
     try {
-      const stream = exec(nextSong.url, {
+      this.currentProcess = exec(nextSong.url, {
         output: '-',
         quiet: true,
-        format: 'bestaudio/best',
+        format: 'bestaudio[ext=webm][acodec=opus]/bestaudio/best',
         limitRate: '1M',
+        reconnect: 1,
+        reconnectStreamed: 1,
+        reconnectDelayMax: 5,
       }, { stdio: ['ignore', 'pipe', 'ignore'] });
 
-      if (!stream.stdout) throw new Error("No stdout from yt-dlp");
+      if (!this.currentProcess.stdout) throw new Error("No stdout from yt-dlp");
 
-      const resource = createAudioResource(stream.stdout, {
-        inputType: StreamType.Arbitrary,
+      const resource = createAudioResource(this.currentProcess.stdout, {
+        inputType: StreamType.WebmOpus,
       });
       
       this.player.play(resource);
@@ -142,6 +152,10 @@ export class MusicPlayer {
     this.clearLeaveTimeout();
     this.currentQueue = this.currentQueue.clear();
     this.player.stop();
+    if (this.currentProcess) {
+      this.currentProcess.kill();
+      this.currentProcess = null;
+    }
     if (this.connection) {
       this.connection.destroy();
       this.connection = null;
