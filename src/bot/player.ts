@@ -53,14 +53,15 @@ export class MusicPlayer {
     });
   }
 
-  public async addAndPlay(song: Song): Promise<boolean> {
+  public async addAndPlay(song: Song): Promise<'playing' | 'queued' | 'error'> {
     this.currentQueue = this.currentQueue.add(song);
     
     // If not playing anything, start playing
     if (this.player.state.status !== AudioPlayerStatus.Playing) {
-      return this.playNext();
+      const success = await this.playNext();
+      return success ? 'playing' : 'error';
     }
-    return false;
+    return 'queued';
   }
 
   public async playNext(): Promise<boolean> {

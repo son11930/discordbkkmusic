@@ -45,11 +45,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       songInfo = { title: searchResults[0].title || 'Unknown', url: searchResults[0].url };
     }
 
-    const isPlaying = await player.addAndPlay(songInfo);
-    if (isPlaying) {
+    const result = await player.addAndPlay(songInfo);
+    if (result === 'playing') {
       return interaction.editReply(`🎶 Now playing: **${songInfo.title}**`);
-    } else {
+    } else if (result === 'queued') {
       return interaction.editReply(`📝 Added to queue: **${songInfo.title}**`);
+    } else {
+      return interaction.editReply(`❌ Failed to play **${songInfo.title}**. (YouTube might be blocking the server IP)`);
     }
   } catch (error) {
     console.error(error);
