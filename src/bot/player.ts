@@ -17,6 +17,8 @@ export class MusicPlayer {
   private currentQueue: MusicQueue;
   private errorCount = 0;
   private onStopCallback?: () => void;
+  private leaveTimeout: NodeJS.Timeout | null = null;
+  private readonly LEAVE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
   constructor(onStop?: () => void) {
     this.player = createAudioPlayer();
@@ -51,9 +53,28 @@ export class MusicPlayer {
     this.connection.on(VoiceConnectionStatus.Disconnected, () => {
       this.stop();
     });
+
+    // Start timeout in case they join but never play anything
+    this.startLeaveTimeout();
+  }
+
+  private startLeaveTimeout(): void {
+    this.clearLeaveTimeout();
+    this.leaveTimeout = setTimeout(() => {
+      console.log('Leaving voice channel due to inactivity.');
+      this.stop();
+    }, this.LEAVE_TIMEOUT_MS);
+  }
+
+  private clearLeaveTimeout(): void {
+    if (this.leaveTimeout) {
+      clearTimeout(this.leaveTimeout);
+      this.leaveTimeout = null;
+    }
   }
 
   public async addAndPlay(song: Song): Promise<'playing' | 'queued' | 'error'> {
+    this.clearLeaveTimeout(); // Clear timeout when a new song is added
     this.currentQueue = this.currentQueue.add(song);
     
     // If not playing anything, start playing
@@ -70,6 +91,7 @@ export class MusicPlayer {
 
     if (!nextSong) {
       this.player.stop();
+      this.startLeaveTimeout(); // Queue is empty, start the timeout
       return false;
     }
 
@@ -107,6 +129,7 @@ export class MusicPlayer {
   }
 
   public stop(): void {
+    this.clearLeaveTimeout();
     this.currentQueue = this.currentQueue.clear();
     this.player.stop();
     if (this.connection) {
