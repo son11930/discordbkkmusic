@@ -100,7 +100,7 @@ export class MusicPlayer {
       const info = await youtubedl(nextSong.url, {
         dumpSingleJson: true,
         noWarnings: true,
-        noCallHome: true,
+        callHome: false,
         preferFreeFormats: true,
         format: 'bestaudio/best',
       });
