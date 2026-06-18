@@ -66,6 +66,37 @@
    pm2 startup
    ```
 
+---
+
+### วิธีที่ 3: รันด้วย Screen (ตามความถนัดเดิม)
+หากคุณถนัดใช้คำสั่ง `screen` บน Ubuntu มากกว่า ก็สามารถทำได้เช่นกันครับ!
+
+1. **ติดตั้ง Library ระบบที่จำเป็น:**
+   ```bash
+   sudo apt update
+   sudo apt install -y python3 make g++ ffmpeg screen
+   ```
+2. **Clone และติดตั้งแพ็กเกจ:**
+   ```bash
+   git clone https://github.com/son11930/discordbkkmusic.git
+   cd discordbkkmusic
+   npm install
+   ```
+3. **ตั้งค่า Environment:**
+   ```bash
+   cp .env.example .env
+   nano .env
+   ```
+   *(ใส่ `DISCORD_TOKEN` ของคุณ)*
+4. **เปิด Screen และรันบอท:**
+   ```bash
+   screen -S musicbot
+   npm run start
+   ```
+   *เมื่อบอทรันขึ้นมาแล้ว (ขึ้นว่า Ready!) ให้กดปุ่ม `Ctrl+A` แล้วตามด้วยตัวอักษร `D` เพื่อพับหน้าต่าง Screen เก็บไว้ทำงานเบื้องหลัง*
+   
+*(หากต้องการกลับไปดูหน้าจอบอท ให้พิมพ์คำสั่ง `screen -r musicbot`)*
+
 ## 🛠 คำสั่งการใช้งาน (Slash Commands)
 - `/play [url หรือ ชื่อเพลง]` - เล่นเพลงจาก YouTube หรือเพิ่มเข้าคิว
 - `/playnextqueue` - ข้ามเพลงปัจจุบันและเล่นเพลงถัดไป
