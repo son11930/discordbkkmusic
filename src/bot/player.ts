@@ -9,7 +9,7 @@ import {
   DiscordGatewayAdapterCreator,
   StreamType,
 } from '@discordjs/voice';
-import { exec } from 'youtube-dl-exec';
+import youtubedl from 'youtube-dl-exec';
 import { MusicQueue, Song } from '../music/queue';
 
 export class MusicPlayer {
@@ -97,16 +97,18 @@ export class MusicPlayer {
     }
 
     try {
-      const stream = exec(nextSong.url, {
-        output: '-',
-        quiet: true,
-        format: 'bestaudio[ext=webm+acodec=opus+asr=48000]/bestaudio/best',
-        limitRate: '1M',
-      }, { stdio: ['ignore', 'pipe', 'ignore'] });
+      const info = await youtubedl(nextSong.url, {
+        dumpSingleJson: true,
+        noWarnings: true,
+        noCallHome: true,
+        preferFreeFormats: true,
+        format: 'bestaudio/best',
+      });
 
-      if (!stream.stdout) throw new Error("No stdout from yt-dlp");
+      const audioUrl = (info as any).url;
+      if (!audioUrl) throw new Error("Could not extract direct audio URL");
 
-      const resource = createAudioResource(stream.stdout, {
+      const resource = createAudioResource(audioUrl, {
         inputType: StreamType.Arbitrary,
       });
       this.player.play(resource);
