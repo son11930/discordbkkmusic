@@ -20,8 +20,12 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
   try {
     console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
+    // Fetch the bot's user info to get the client ID dynamically
+    const botUser = await rest.get(Routes.user('@me')) as any;
+    const clientId = botUser.id;
+
     const data = await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID!),
+      Routes.applicationCommands(clientId),
       { body: commands },
     );
 
