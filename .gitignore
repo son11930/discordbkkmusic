@@ -16,7 +16,7 @@ AGENTS.md
 RULES.md
 RULES discord.md
 agents/
-commands/
+/commands/
 hooks/
 mcp-configs/
 rules/
