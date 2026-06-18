@@ -38,10 +38,6 @@ export class MusicPlayer {
     guildId: string,
     adapterCreator: DiscordGatewayAdapterCreator
   ): void {
-    if (this.connection) {
-      return; // Already connected
-    }
-    
     this.connection = joinVoiceChannel({
       channelId,
       guildId,
