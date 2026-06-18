@@ -60,4 +60,22 @@ describe('MusicQueue', () => {
     expect(q.current).toEqual(song1);
     expect(q.getAll()).toHaveLength(0);
   });
+
+  it('should initialize with provided items and current song', () => {
+    const song1: Song = { title: 'Song 1', url: 'http://test1.com' };
+    const song2: Song = { title: 'Song 2', url: 'http://test2.com' };
+    const initialQueue = new MusicQueue([song1], song2);
+    
+    expect(initialQueue.getAll()).toEqual([song1]);
+    expect(initialQueue.current).toEqual(song2);
+  });
+
+  it('should clear an already empty queue', () => {
+    const emptyQueue = new MusicQueue();
+    const clearedQueue = emptyQueue.clear();
+    
+    expect(clearedQueue.getAll()).toEqual([]);
+    expect(clearedQueue.current).toBeUndefined();
+    expect(clearedQueue).not.toBe(emptyQueue);
+  });
 });

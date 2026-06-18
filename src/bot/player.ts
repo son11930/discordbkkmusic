@@ -15,10 +15,13 @@ export class MusicPlayer {
   private player: AudioPlayer;
   private connection: VoiceConnection | null = null;
   private currentQueue: MusicQueue;
+  private errorCount = 0;
+  private onStopCallback?: () => void;
 
-  constructor() {
+  constructor(onStop?: () => void) {
     this.player = createAudioPlayer();
     this.currentQueue = new MusicQueue();
+    this.onStopCallback = onStop;
 
     // Event listener for when a song finishes
     this.player.on(AudioPlayerStatus.Idle, () => {
@@ -77,9 +80,16 @@ export class MusicPlayer {
         inputType: stream.type,
       });
       this.player.play(resource);
+      this.errorCount = 0; // reset on success
       return true;
     } catch (error) {
       console.error(`Error playing song ${nextSong.url}:`, error);
+      this.errorCount++;
+      if (this.errorCount >= 3) {
+        console.error('Too many consecutive errors, stopping player to prevent infinite loop.');
+        this.stop();
+        return false;
+      }
       // Skip to the next one if it fails
       return this.playNext();
     }
@@ -104,5 +114,6 @@ export class MusicPlayer {
       this.connection.destroy();
       this.connection = null;
     }
+    this.onStopCallback?.();
   }
 }

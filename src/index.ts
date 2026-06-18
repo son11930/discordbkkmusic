@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Collection, Events } from 'discord.js';
+import { Client, GatewayIntentBits, Collection, Events, ChatInputCommandInteraction, SlashCommandBuilder, SharedSlashCommand } from 'discord.js';
 import { config } from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,8 +15,8 @@ const client = new Client({
 
 // Setup Commands Collection
 export interface Command {
-  data: any;
-  execute: (interaction: any) => Promise<void>;
+  data: SharedSlashCommand;
+  execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 
 const commands = new Collection<string, Command>();

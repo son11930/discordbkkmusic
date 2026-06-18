@@ -5,7 +5,7 @@ export const players = new Map<string, MusicPlayer>();
 export function getPlayer(guildId: string): MusicPlayer {
   let player = players.get(guildId);
   if (!player) {
-    player = new MusicPlayer();
+    player = new MusicPlayer(() => players.delete(guildId));
     players.set(guildId, player);
   }
   return player;
