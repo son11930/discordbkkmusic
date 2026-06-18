@@ -46,6 +46,8 @@ export class MusicPlayer {
       channelId,
       guildId,
       adapterCreator,
+      selfDeaf: false,
+      selfMute: false,
     });
 
     this.connection.subscribe(this.player);
