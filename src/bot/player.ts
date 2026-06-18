@@ -7,8 +7,9 @@ import {
   AudioPlayerStatus,
   VoiceConnectionStatus,
   DiscordGatewayAdapterCreator,
+  StreamType,
 } from '@discordjs/voice';
-import play from 'play-dl';
+import { exec } from 'youtube-dl-exec';
 import { MusicQueue, Song } from '../music/queue';
 
 export class MusicPlayer {
@@ -96,9 +97,17 @@ export class MusicPlayer {
     }
 
     try {
-      const stream = await play.stream(nextSong.url);
-      const resource = createAudioResource(stream.stream, {
-        inputType: stream.type,
+      const stream = exec(nextSong.url, {
+        output: '-',
+        quiet: true,
+        format: 'bestaudio[ext=webm+acodec=opus+asr=48000]/bestaudio/best',
+        limitRate: '1M',
+      }, { stdio: ['ignore', 'pipe', 'ignore'] });
+
+      if (!stream.stdout) throw new Error("No stdout from yt-dlp");
+
+      const resource = createAudioResource(stream.stdout, {
+        inputType: StreamType.Arbitrary,
       });
       this.player.play(resource);
       this.errorCount = 0; // reset on success

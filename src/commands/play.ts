@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, GuildMember } from 'discord.js';
 import { getPlayer } from '../bot/manager';
-import play from 'play-dl';
+import youtubedl from 'youtube-dl-exec';
 
 export const data = new SlashCommandBuilder()
   .setName('play')
@@ -25,32 +25,30 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   try {
     let songInfo;
-    let titleToSearch = query;
+    let searchQuery = query;
 
-    if (query.startsWith('http')) {
-      try {
-        const urlObj = new URL(query);
-        const validHostnames = ['youtube.com', 'www.youtube.com', 'youtu.be', 'music.youtube.com'];
-        if (!validHostnames.includes(urlObj.hostname)) {
-          return interaction.editReply('❌ Only YouTube URLs are supported right now.');
-        }
-        const info = await play.video_info(query);
-        titleToSearch = info.video_details.title || 'Unknown';
-      } catch {
-        return interaction.editReply('❌ Invalid URL provided or YouTube blocked fetching info.');
-      }
+    if (!query.startsWith('http')) {
+      searchQuery = `ytsearch1:${query}`;
     }
 
-    // Search on SoundCloud with the query (or the extracted YouTube title)
     try {
-      const searchResults = await play.search(titleToSearch, { limit: 1, source: { soundcloud: 'tracks' } });
-      if (searchResults.length === 0) {
-        return interaction.editReply('❌ No results found on SoundCloud.');
+      const info = await youtubedl(searchQuery, {
+        dumpSingleJson: true,
+        noWarnings: true,
+        noCheckCertificates: true,
+        preferFreeFormats: true,
+      });
+
+      // If it's a search, info.entries will exist
+      const video = (info as any).entries ? (info as any).entries[0] : info;
+      if (!video) {
+        return interaction.editReply('❌ No results found.');
       }
-      songInfo = { title: searchResults[0].name || 'Unknown', url: searchResults[0].url };
+      
+      songInfo = { title: video.title || 'Unknown', url: video.webpage_url || video.url || query };
     } catch (e) {
-      console.error('SoundCloud search error:', e);
-      return interaction.editReply('❌ Error searching on SoundCloud.');
+      console.error('yt-dlp search error:', e);
+      return interaction.editReply('❌ Error searching or invalid URL.');
     }
 
     const result = await player.addAndPlay(songInfo);
