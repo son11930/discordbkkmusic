@@ -38,8 +38,10 @@ client.once(Events.ClientReady, c => {
 });
 
 client.on(Events.InteractionCreate, async interaction => {
+  console.log(`[DEBUG] Received interaction: ${interaction.type}`);
   if (!interaction.isChatInputCommand()) return;
 
+  console.log(`[DEBUG] Executing command: ${interaction.commandName} for user: ${interaction.user.tag}`);
   const command = commands.get(interaction.commandName);
 
   if (!command) {
@@ -49,8 +51,9 @@ client.on(Events.InteractionCreate, async interaction => {
 
   try {
     await command.execute(interaction);
+    console.log(`[DEBUG] Successfully executed command: ${interaction.commandName}`);
   } catch (error) {
-    console.error(error);
+    console.error(`[ERROR] Failed to execute ${interaction.commandName}:`, error);
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
     } else {
