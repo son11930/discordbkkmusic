@@ -6,7 +6,7 @@ import {
   VoiceConnection,
   AudioPlayerStatus,
   VoiceConnectionStatus,
-  InternalDiscordGatewayAdapterCreator,
+  DiscordGatewayAdapterCreator,
 } from '@discordjs/voice';
 import play from 'play-dl';
 import { MusicQueue, Song } from '../music/queue';
@@ -36,7 +36,7 @@ export class MusicPlayer {
   public join(
     channelId: string,
     guildId: string,
-    adapterCreator: InternalDiscordGatewayAdapterCreator
+    adapterCreator: DiscordGatewayAdapterCreator
   ): void {
     if (this.connection) {
       return; // Already connected
