@@ -47,7 +47,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       if (searchResults.length === 0) {
         return interaction.editReply('❌ No results found on SoundCloud.');
       }
-      songInfo = { title: searchResults[0].name || searchResults[0].title || 'Unknown', url: searchResults[0].url };
+      songInfo = { title: searchResults[0].name || 'Unknown', url: searchResults[0].url };
     } catch (e) {
       console.error('SoundCloud search error:', e);
       return interaction.editReply('❌ Error searching on SoundCloud.');
