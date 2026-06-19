@@ -109,7 +109,8 @@ export class MusicPlayer {
 
   public async playNext(): Promise<boolean> {
     if (this.currentProcess) {
-      this.currentProcess.kill();
+      this.currentProcess.stdout?.destroy();
+      this.currentProcess.kill('SIGKILL');
       this.currentProcess = null;
     }
 
@@ -161,7 +162,12 @@ export class MusicPlayer {
   }
 
   public skip(): void {
-    this.player.stop(); // This triggers the Idle event, which calls playNext()
+    if (this.currentProcess) {
+      this.currentProcess.stdout?.destroy();
+      this.currentProcess.kill('SIGKILL');
+      this.currentProcess = null;
+    }
+    this.player.stop(true); // Force stop to trigger Idle event immediately
   }
 
   public stop(): void {
