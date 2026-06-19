@@ -21,6 +21,14 @@ export class MusicQueue {
   }
 
   /**
+   * Adds a song to the front of the queue (to be played next).
+   * Returns a NEW instance of MusicQueue.
+   */
+  public addNext(song: Song): MusicQueue {
+    return new MusicQueue([song, ...this.items], this.current);
+  }
+
+  /**
    * Skips to the next song in the queue.
    * Returns a NEW instance of MusicQueue.
    */

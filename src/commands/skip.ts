@@ -2,7 +2,7 @@ import { SlashCommandBuilder, ChatInputCommandInteraction, GuildMember } from 'd
 import { getPlayer } from '../bot/manager';
 
 export const data = new SlashCommandBuilder()
-  .setName('playnextqueue')
+  .setName('skip')
   .setDescription('Skip the current song and play the next one in the queue');
 
 export async function execute(interaction: ChatInputCommandInteraction) {

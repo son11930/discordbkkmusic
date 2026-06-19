@@ -88,6 +88,17 @@ export class MusicPlayer {
     return 'queued';
   }
 
+  public async addNextAndPlay(song: Song): Promise<'playing' | 'queued' | 'error'> {
+    this.clearLeaveTimeout();
+    this.currentQueue = this.currentQueue.addNext(song);
+    
+    if (this.player.state.status !== AudioPlayerStatus.Playing) {
+      const success = await this.playNext();
+      return success ? 'playing' : 'error';
+    }
+    return 'queued';
+  }
+
   public async playNext(): Promise<boolean> {
     if (this.currentProcess) {
       this.currentProcess.kill();
