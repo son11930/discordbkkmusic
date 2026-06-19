@@ -16,12 +16,24 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const query = interaction.options.getString('query', true);
   
   const member = interaction.member as GuildMember;
-  if (!member?.voice?.channel) {
+  const voiceChannel = member?.voice?.channel;
+  if (!voiceChannel) {
     return interaction.editReply('❌ You need to be in a voice channel to play music!');
   }
 
+  const botMember = interaction.guild!.members.me;
+  if (botMember) {
+    const permissions = voiceChannel.permissionsFor(botMember);
+    if (!permissions.has('Connect')) {
+      return interaction.editReply('❌ **บอทไม่มีสิทธิ์เข้าห้องนี้ครับ! (Missing Connect Permission)**\\nกรุณาไปตั้งค่าห้องนี้ (Edit Channel -> Permissions) แล้วกดเพิ่มยศบอท และติ๊กถูก ✅ ให้สิทธิ์ `Connect` กับ `View Channel` ด้วยครับ');
+    }
+    if (!permissions.has('Speak')) {
+      return interaction.editReply('❌ **บอทไม่มีสิทธิ์ส่งเสียงในห้องนี้ครับ! (Missing Speak Permission)**\\nกรุณาไปตั้งค่าห้องนี้ แล้วติ๊กถูก ✅ ให้สิทธิ์ `Speak` กับบอทด้วยครับ');
+    }
+  }
+
   const player = getPlayer(interaction.guildId!);
-  player.join(member.voice.channel.id, interaction.guildId!, interaction.guild!.voiceAdapterCreator as any);
+  player.join(voiceChannel.id, interaction.guildId!, interaction.guild!.voiceAdapterCreator as any);
 
   try {
     let songInfo;
