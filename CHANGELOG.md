@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+- **Security**: Added protection against yt-dlp command injection vulnerabilities.
+- **Security**: Added strict cross-channel permission checks to prevent trolls from skipping songs in different rooms.
+- **Performance**: Resolved major memory leaks involving unhandled listeners and dangling 5-minute timeout "zombie" player instances.
+- **Stability**: Fixed floating promises and missing Error event listeners that caused full Node.js server crashes upon Discord API network errors.
+- **Audio Quality**: Removed artificial 1MB/s stream rate limiting and forced native stream passthrough to eliminate stuttering and allow Discord to handle bitrates correctly.
+
 ## [1.0.1] - 2026-06-19
 ### Added
 - Auto-leave voice channel functionality after 5 minutes of inactivity.
