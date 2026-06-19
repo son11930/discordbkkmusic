@@ -12,8 +12,16 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  if (!interaction.guild || !interaction.guildId) {
+    return interaction.reply({ content: '❌ This command can only be used in a server!', ephemeral: true });
+  }
+
   await interaction.deferReply();
   const query = interaction.options.getString('query', true);
+
+  if (query.trim().startsWith('-')) {
+    return interaction.editReply('❌ Invalid search query. Commands or flags are not allowed.');
+  }
   
   const member = interaction.member as GuildMember;
   const voiceChannel = member?.voice?.channel;

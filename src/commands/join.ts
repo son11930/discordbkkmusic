@@ -6,10 +6,16 @@ export const data = new SlashCommandBuilder()
   .setDescription('Make the bot join your current voice channel');
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  if (!interaction.guild || !interaction.guildId) return interaction.reply({ content: '❌ This command can only be used in a server!', ephemeral: true });
+
   const member = interaction.member as GuildMember;
   const voiceChannel = member?.voice?.channel;
   if (!voiceChannel) {
     return interaction.reply({ content: '❌ You need to be in a voice channel!', ephemeral: true });
+  }
+
+  if (voiceChannel.full) {
+    return interaction.reply({ content: '❌ ห้องเสียงนี้คนเต็มแล้วครับ บอทเข้าไม่ได้!', ephemeral: true });
   }
 
   const botMember = interaction.guild!.members.me;

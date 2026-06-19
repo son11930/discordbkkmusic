@@ -28,9 +28,15 @@ export class MusicPlayer {
     this.currentQueue = new MusicQueue();
     this.onStopCallback = onStop;
 
+    this.player.on('error', error => {
+      console.error('AudioPlayer Error:', error.message);
+    });
+
     // Event listener for when a song finishes
     this.player.on(AudioPlayerStatus.Idle, () => {
-      this.playNext();
+      if (this.connection) {
+        this.playNext().catch(console.error);
+      }
     });
   }
 
@@ -43,6 +49,8 @@ export class MusicPlayer {
     guildId: string,
     adapterCreator: DiscordGatewayAdapterCreator
   ): void {
+    if (this.connection) return;
+
     this.connection = joinVoiceChannel({
       channelId,
       guildId,
@@ -109,8 +117,9 @@ export class MusicPlayer {
     const nextSong = this.currentQueue.current;
 
     if (!nextSong) {
-      this.player.stop();
-      this.startLeaveTimeout(); // Queue is empty, start the timeout
+      if (this.connection) {
+        this.startLeaveTimeout(); // Queue is empty, start the timeout
+      }
       return false;
     }
 
@@ -118,14 +127,13 @@ export class MusicPlayer {
       this.currentProcess = exec(nextSong.url, {
         output: '-',
         quiet: true,
-        format: 'bestaudio[ext=webm][acodec=opus]/bestaudio/best',
-        limitRate: '1M',
+        format: 'bestaudio/best',
       }, { stdio: ['ignore', 'pipe', 'ignore'] });
 
       if (!this.currentProcess.stdout) throw new Error("No stdout from yt-dlp");
 
       const resource = createAudioResource(this.currentProcess.stdout, {
-        inputType: StreamType.WebmOpus,
+        inputType: StreamType.Arbitrary,
       });
       
       this.player.play(resource);
@@ -159,15 +167,19 @@ export class MusicPlayer {
   public stop(): void {
     this.clearLeaveTimeout();
     this.currentQueue = this.currentQueue.clear();
-    this.player.stop();
+    
     if (this.currentProcess) {
-      this.currentProcess.kill();
+      this.currentProcess.stdout?.destroy();
+      this.currentProcess.kill('SIGTERM');
       this.currentProcess = null;
     }
+    
     if (this.connection) {
       this.connection.destroy();
       this.connection = null;
     }
+
+    this.player.stop(); // Triggers Idle, but this.connection is now null so it won't start leaveTimeout
     this.onStopCallback?.();
   }
 }
